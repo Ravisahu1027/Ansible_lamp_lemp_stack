@@ -1,0 +1,40 @@
+---
+- name: Install web server (Apache or Nginx)
+  ansible.builtin.apt:
+    name: "{{ web_server_package }}"
+    state: present
+
+- name: Install database server
+  ansible.builtin.apt:
+    name: "{{ db_server_package }}"
+    state: present
+    update_cache: yes  
+
+- name: Install PHP packages
+  ansible.builtin.apt:
+    name: "{{ php_packages }}"
+    state: present
+
+- name: Deploy web server configuration
+  ansible.builtin.template:
+    src: "{{ web_server_conf }}"
+    dest: "{{ web_server_conf_dest }}"
+  notify: Restart web server
+
+- name: Copy index.php
+  ansible.builtin.template:
+    src: index.php.j2
+    dest: /var/www/html/index.php
+
+- name: Ensure web server is running and enabled
+  ansible.builtin.service:
+    name: apache2
+    state: started
+    enabled: true
+
+- name: Ensure database server is running and enabled
+  ansible.builtin.service:
+    name: "{{ db_server_service }}"
+    state: started
+    enabled: true
+
